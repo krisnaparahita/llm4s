@@ -368,6 +368,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sbt. Three stale claims it found are fixed: `sbt dependencyCheck` (no such task) in the review guidelines,
   `sbt run "Explain ..."` in the g8 guide (sbt reads the quoted text as a second command; it is now
   `sbt "run Explain ..."`), and `modules/gradle-demo`, which CLAUDE.md did not name.
+- **CI checks every internal link in `docs/`, against a baseline that can only shrink**
+  ([#1482](https://github.com/llm4s/llm4s/issues/1482)): `scripts/check-docs-site-links.sh`, in the `quick-checks`
+  job, resolves each link in `docs/**/*.md` the way llm4s.org serves it - relative links against the page's URL,
+  site-absolute links, `permalink:` front matter, `/dir/` index pages, heading anchors - and fails on a broken link
+  that `scripts/docs-link-baseline.txt` does not list and on a listed link that no longer breaks. The rules were
+  checked against the live site: a `.md` link to a rendered page is a 404 (the site is built without
+  `jekyll-relative-links`), and a page without front matter is served raw, so a link to it is reported too. The
+  baseline starts with 209 known-broken links (68 `.md` links, 58 pages never written, 58 links to pages without
+  front matter, 16 links that leave `docs/`, 9 stale anchors); fixing one means deleting its line.
+  `--print` lists what is broken now and `--update-baseline` rewrites the file.
+  `scripts/test-check-docs-site-links.sh` runs 29 cases against fixture trees, with no network.
 - **Built-in tools guide** ([#1296](https://github.com/llm4s/llm4s/issues/1296)):
   `docs/guide/builtin-tools.md` lists every built-in tool with its parameters and result, the bundles that hold
   them (`coreSafe`, `withHttpSafe()`, `withFilesSafe()`, `developmentSafe()`, `customSafe(...)`), how to register
